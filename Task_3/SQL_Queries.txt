@@ -1,0 +1,78 @@
+1.Write a SQL query to retrieve the top 5 customers who have purchased the most books (by total quantity) over the last year.
+ Query:
+
+  SELECT C.customer_id, C.name, SUM(OD.quantity) AS total_books
+  FROM Customers C
+  JOIN Orders O ON C.customer_id = O.customer_id
+  JOIN OrderDetails OD ON O.order_id = OD.order_id
+  WHERE O.order_date >= CURDATE() - INTERVAL 1 YEAR
+  GROUP BY C.customer_id, C.name
+  ORDER BY total_books DESC
+  LIMIT 5;
+
+INDEXES:
+
+ CREATE INDEX idx_order_date ON Orders(order_date);
+ CREATE INDEX idx_customer_id ON Orders(customer_id);
+ CREATE INDEX idx_order_id ON OrderDetails(order_id);
+ CREATE INDEX idx_quantity ON OrderDetails(quantity);
+
+EXPLANATION:
+1.Orders (order_date): Indexing the order_date column will make filtering orders from the last year much faster.
+2.Orders (customer_id): Helps the join between Customers and Orders.
+3.OrderDetails (order_id): Helps the join between Orders and OrderDetails.
+4.OrderDetails (quantity): Useful for efficiently summing the total books.
+
+
+
+2.Write a SQL query to calculate the total revenue generated from book sales by each author.
+ Query:
+
+  SELECT B.author, SUM(B.price * OD.quantity) AS total_revenue
+  FROM Books B
+  JOIN OrderDetails OD ON B.book_id = OD.book_id
+  GROUP BY B.author
+  ORDER BY total_revenue DESC;
+
+INDEXES:
+ CREATE INDEX idx_book_id ON Books(book_id);
+ CREATE INDEX idx_orderdetails_book_id ON OrderDetails(book_id);
+ CREATE INDEX idx_quantity ON OrderDetails(quantity);
+ CREATE INDEX idx_author ON Books(author);
+
+EXPLANATION:
+1.Books (book_id): Speeds up the join between Books and OrderDetails.
+2.OrderDetails (book_id): Helps with the join between Books and OrderDetails.
+3.OrderDetails (quantity): Efficient for calculating the total revenue.
+4.Books (author): Helps in grouping and ordering by the author
+
+3.Write a SQL query to retrieve all books that have been ordered more than 10 times, along with the total quantity ordered for each book
+Query:
+
+  SELECT B.book_id, B.title, SUM(OD.quantity) AS total_quantity
+  FROM Books B
+  JOIN OrderDetails OD ON B.book_id = OD.book_id
+  GROUP BY B.book_id, B.title
+  HAVING COUNT(OD.order_id) > 10
+  ORDER BY total_quantity DESC;
+INDEXES:
+CREATE INDEX idx_book_id ON Books(book_id);
+CREATE INDEX idx_orderdetails_book_id ON OrderDetails(book_id);
+CREATE INDEX idx_order_id ON OrderDetails(order_id);
+
+EXPLANATION:
+1.Books (book_id): Speeds up the join between Books and OrderDetails.
+2.OrderDetails (book_id): Necessary for joining and calculating the total quantity ordered.
+3.OrderDetails (order_id): Helps the HAVING clause, as it counts distinct orders for each book.
+
+Conclusion:
+The queries written are already structured well for efficiency, but proper indexing  would further enhance performance, particularly in large datasets.
+
+
+
+
+
+
+
+
+
